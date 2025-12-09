@@ -70,24 +70,24 @@ The form includes:
 ### **Formatted Script**
 
 ```javascript
-(function executeRule(current, previous) {
+(function executeRule(current, previous /*null when async*/) {
 
-    // Run only when Category is changed
-    if (current.category.changesTo('Network')) {
+    var FamilyExpenses = new GlideRecord('u_family_expenses');
+    FamilyExpenses.addQuery('u_date', current.u_date);
+    FamilyExpenses.query();
 
-        // Auto-fill Short Description
-        current.short_description = 'Network Issue';
+    var line = "\n>" + current.u_comments + ": Rs." + current.u_expense + "/-";
 
-        // Auto-fill Description
-        current.description =
-            'User is facing network-related issues such as slow connectivity, ' +
-            'no internet access, or intermittent connection drops.';
-
-        // Set Priority
-        current.priority = 2;   // High Priority
-
-        // Set Assignment Group
-        current.assignment_group = 'Network Support';
+    if (FamilyExpenses.next()) {
+        FamilyExpenses.u_amount += current.u_expense;
+        FamilyExpenses.u_expense_details += line;
+        FamilyExpenses.update();
+    } else {
+        var NewFamilyExpenses = new GlideRecord('u_family_expenses');
+        NewFamilyExpenses.u_date = current.u_date;
+        NewFamilyExpenses.u_amount = current.u_expense;
+        NewFamilyExpenses.u_expense_details = line;  // initialize instead of +=
+        NewFamilyExpenses.insert();
     }
 
 })(current, previous);
@@ -141,9 +141,7 @@ All screenshots are available inside the `/screenshots` folder:
 
 ## ▶️ Demo Video
 
-
-`[Demo Video Link]`
-
+` https://drive.google.com/file/d/1NNmvheWOF3EF1BjBVhZyag_qAfFfZvt4/view?usp=drive_link `
 
 
 ## 🏁 Conclusion
